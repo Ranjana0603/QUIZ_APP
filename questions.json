@@ -1,0 +1,52 @@
+[
+  {
+    "question": "What does JS stand for?",
+    "options": ["JavaScript", "JavaServer", "JustScript", "JSONScript"],
+    "answer": "JavaScript"
+  },
+  {
+    "question": "Which HTML tag is used to include JavaScript?",
+    "options": ["<script>", "<js>", "<javascript>", "<code>"],
+    "answer": "<script>"
+  },
+  {
+    "question": "Which company developed JavaScript?",
+    "options": ["Netscape", "Google", "Microsoft", "Apple"],
+    "answer": "Netscape"
+  },
+  {
+    "question": "Which of the following is a JavaScript data type?",
+    "options": ["Float", "Character", "Undefined", "Double"],
+    "answer": "Undefined"
+  },
+  {
+    "question": "How do you write a comment in JavaScript?",
+    "options": ["<!-- comment -->", "// comment", "# comment", "/* comment"],
+    "answer": "// comment"
+  },
+  {
+    "question": "Which method can be used to find the length of a string?",
+    "options": ["len()", "length()", "count()", ".length"],
+    "answer": ".length"
+  },
+  {
+    "question": "Which operator is used to assign a value to a variable?",
+    "options": ["=", "==", ":=", "==="],
+    "answer": "="
+  },
+  {
+    "question": "What keyword is used to declare a JavaScript variable?",
+    "options": ["int", "var", "let", "Both var and let"],
+    "answer": "Both var and let"
+  },
+  {
+    "question": "Which method is used to parse a JSON string into a JavaScript object?",
+    "options": ["JSON.parse()", "JSON.stringify()", "JSON.object()", "JSON.toJS()"],
+    "answer": "JSON.parse()"
+  },
+  {
+    "question": "How do you create a function in JavaScript?",
+    "options": ["function myFunction()", "def myFunction()", "create myFunction()", "func myFunction()"],
+    "answer": "function myFunction()"
+  }
+]
