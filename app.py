@@ -4,7 +4,7 @@ import os
 
 app = Flask(__name__)
 
-# Load questions from JSON file
+
 def load_questions():
     with open(os.path.join(app.root_path, 'questions.json'), 'r') as f:
         return json.load(f)

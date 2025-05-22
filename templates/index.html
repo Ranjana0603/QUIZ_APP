@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title> QUIZ APP </title>
+  <title>QUIZ APP</title>
   <style>
-    /* Your existing styles */
     body {
       font-family: 'Poppins', sans-serif;
-      background: url(https://img.freepik.com/free-psd/3d-rendering-questions-background_23-2151455632.jpg?ga=GA1.1.1455399836.1747903317&semt=ais_hybrid&w=740) no-repeat center center fixed ;
-      display: flex;
+      background: url(https://img.freepik.com/free-psd/3d-rendering-questions-background_23-2151455632.jpg) no-repeat center center fixed;
       background-size: cover;
+      display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
@@ -73,6 +72,16 @@
       box-shadow: none;
     }
 
+    .correct {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .wrong {
+      background-color: #dc3545;
+      color: white;
+    }
+
     #next-btn {
       display: none;
       margin-top: 25px;
@@ -97,7 +106,7 @@
       margin-top: 30px;
       display: none;
       text-align: center;
-    } 
+    }
 
     #restart-btn {
       background: #2575fc;
@@ -125,7 +134,7 @@
 </head>
 <body>
   <div class="quiz-container">
-    <h1> JavaScript Quiz </h1>
+    <h1>JavaScript Quiz</h1>
     <div id="timer">Time Left: 15s</div>
     <div id="question-container">
       <div id="question">Loading...</div>
@@ -142,21 +151,21 @@
 
   <script>
     let questions = [];
-    let currentIndex = 0; // use only one index variable
+    let currentIndex = 0;
     let score = 0;
     let timer;
     let timeLeft = 15;
+    let answered = false;
 
     const questionEl = document.getElementById("question");
     const answersEl = document.getElementById("answers");
     const nextBtn = document.getElementById("next-btn");
     const timerEl = document.getElementById("timer");
-    const resultContainer = document.getElementById('result-container');
-    const resultMessage = document.getElementById('result-message');
-    const restartBtn = document.getElementById('restart-btn');
-    const questionContainer = document.getElementById('question-container');
+    const resultContainer = document.getElementById("result-container");
+    const resultMessage = document.getElementById("result-message");
+    const restartBtn = document.getElementById("restart-btn");
+    const questionContainer = document.getElementById("question-container");
 
-    // Fetch questions from Flask API
     async function fetchQuestions() {
       try {
         const res = await fetch('/api/questions');
@@ -171,27 +180,24 @@
     function startQuiz() {
       currentIndex = 0;
       score = 0;
-
-      // Show quiz, hide result
       questionContainer.style.display = "block";
       timerEl.style.display = "block";
       nextBtn.style.display = "none";
       resultContainer.style.display = "none";
-
       showQuestion();
     }
 
     function startTimer() {
       timeLeft = 15;
       timerEl.innerText = `Time Left: ${timeLeft}s`;
-
       timer = setInterval(() => {
         timeLeft--;
         timerEl.innerText = `Time Left: ${timeLeft}s`;
         if (timeLeft <= 0) {
           clearInterval(timer);
           disableAnswers();
-          nextBtn.style.display = "block";
+          showCorrectAnswer();
+          setTimeout(() => moveToNext(), 2500);
         }
       }, 1000);
     }
@@ -199,6 +205,7 @@
     function showQuestion() {
       clearInterval(timer);
       nextBtn.style.display = "none";
+      answered = false;
 
       const q = questions[currentIndex];
       questionEl.innerText = q.question;
@@ -207,27 +214,53 @@
       q.options.forEach(option => {
         const btn = document.createElement("button");
         btn.innerText = option;
-        btn.addEventListener("click", () => checkAnswer(option));
+        btn.addEventListener("click", () => handleAnswer(btn, option, q.answer));
         answersEl.appendChild(btn);
       });
 
       startTimer();
-
-      // Make sure question container and timer visible in case restarting
-      questionContainer.style.display = "block";
-      timerEl.style.display = "block";
     }
 
-    function checkAnswer(selected) {
+    function handleAnswer(button, selected, correct) {
+      if (answered) return;
+      answered = true;
       clearInterval(timer);
       disableAnswers();
-      const correct = questions[currentIndex].answer;
 
       if (selected === correct) {
+        button.classList.add("correct");
         score++;
+      } else {
+        button.classList.add("wrong");
+
+        const buttons = answersEl.querySelectorAll('button');
+        buttons.forEach(btn => {
+          if (btn.innerText === correct) {
+            btn.classList.add("correct");
+          }
+        });
+
+        const feedback = document.createElement("p");
+        feedback.innerText = `Correct answer: ${correct}`;
+        feedback.style.color = "green";
+        feedback.id = "feedback";
+        answersEl.appendChild(feedback);
       }
 
-      nextBtn.style.display = "block";
+      setTimeout(() => {
+        const fb = document.getElementById("feedback");
+        if (fb) fb.remove();
+        moveToNext();
+      }, 2500);
+    }
+
+    function moveToNext() {
+      currentIndex++;
+      if (currentIndex < questions.length) {
+        showQuestion();
+      } else {
+        showResult();
+      }
     }
 
     function disableAnswers() {
@@ -235,33 +268,16 @@
       buttons.forEach(btn => btn.disabled = true);
     }
 
-    nextBtn.addEventListener("click", () => {
-      currentIndex++;
-      if (currentIndex < questions.length) {
-        showQuestion();
-      } else {
-        showResult();
-      }
-    });
-
     function showResult() {
       clearInterval(timer);
-
-      // Hide question section and next button and timer
       questionContainer.style.display = "none";
       nextBtn.style.display = "none";
       timerEl.style.display = "none";
-
-      // Show result container with score and restart
       resultContainer.style.display = "block";
       resultMessage.textContent = `Congratulations! You scored ${score} out of ${questions.length}`;
     }
 
-    restartBtn.addEventListener('click', () => {
-      startQuiz();
-    });
-
-    // Initialize app on page load
+    restartBtn.addEventListener("click", startQuiz);
     window.onload = fetchQuestions;
   </script>
 </body>
