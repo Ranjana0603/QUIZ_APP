@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title> QUIZ APP </title>
+  <style>
+    /* Your existing styles */
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: url(https://img.freepik.com/free-psd/3d-rendering-questions-background_23-2151455632.jpg?ga=GA1.1.1455399836.1747903317&semt=ais_hybrid&w=740) no-repeat center center fixed ;
+      display: flex;
+      background-size: cover;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      color: #333;
+    }
+
+    .quiz-container {
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 15px;
+      width: 420px;
+      box-shadow: 0 15px 25px rgba(37, 117, 252, 0.4);
+      text-align: center;
+    }
+
+    h1 {
+      font-weight: 600;
+      color: #2575fc;
+      margin-bottom: 15px;
+    }
+
+    #timer {
+      font-weight: 700;
+      font-size: 18px;
+      color: #ff4b5c;
+      margin-bottom: 20px;
+      letter-spacing: 1.2px;
+    }
+
+    #question {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 25px;
+      min-height: 60px;
+    }
+
+    #answers button {
+      display: block;
+      background: #2575fc;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      margin: 10px 0;
+      padding: 12px 15px;
+      width: 100%;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(37, 117, 252, 0.3);
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    #answers button:hover:not(:disabled) {
+      background: whitesmoke;
+      transform: translateY(-3px);
+    }
+
+    #answers button:disabled {
+      background: #b0c4de;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    #next-btn {
+      display: none;
+      margin-top: 25px;
+      padding: 12px 25px;
+      font-size: 17px;
+      font-weight: 600;
+      color: #fff;
+      background: #ff4b5c;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(255, 75, 92, 0.5);
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    #next-btn:hover {
+      background: #ff2e3c;
+      transform: translateY(-3px);
+    }
+
+    #result-container {
+      margin-top: 30px;
+      display: none;
+      text-align: center;
+    } 
+
+    #restart-btn {
+      background: #2575fc;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 15px;
+      box-shadow: 0 8px 20px rgba(37, 117, 252, 0.5);
+      transition: background 0.3s ease;
+    }
+
+    #restart-btn:hover {
+      background: #6a11cb;
+    }
+
+    #result-message {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2575fc;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <h1> JavaScript Quiz </h1>
+    <div id="timer">Time Left: 15s</div>
+    <div id="question-container">
+      <div id="question">Loading...</div>
+      <div id="answers"></div>
+    </div>
+
+    <div id="result-container">
+      <h2 id="result-message"></h2>
+      <button id="restart-btn">Restart Quiz</button>
+    </div>
+
+    <button id="next-btn">Next</button>
+  </div>
+
+  <script>
+    let questions = [];
+    let currentIndex = 0; // use only one index variable
+    let score = 0;
+    let timer;
+    let timeLeft = 15;
+
+    const questionEl = document.getElementById("question");
+    const answersEl = document.getElementById("answers");
+    const nextBtn = document.getElementById("next-btn");
+    const timerEl = document.getElementById("timer");
+    const resultContainer = document.getElementById('result-container');
+    const resultMessage = document.getElementById('result-message');
+    const restartBtn = document.getElementById('restart-btn');
+    const questionContainer = document.getElementById('question-container');
+
+    // Fetch questions from Flask API
+    async function fetchQuestions() {
+      try {
+        const res = await fetch('/api/questions');
+        questions = await res.json();
+        startQuiz();
+      } catch (error) {
+        questionEl.innerText = "Failed to load questions.";
+        console.error(error);
+      }
+    }
+
+    function startQuiz() {
+      currentIndex = 0;
+      score = 0;
+
+      // Show quiz, hide result
+      questionContainer.style.display = "block";
+      timerEl.style.display = "block";
+      nextBtn.style.display = "none";
+      resultContainer.style.display = "none";
+
+      showQuestion();
+    }
+
+    function startTimer() {
+      timeLeft = 15;
+      timerEl.innerText = `Time Left: ${timeLeft}s`;
+
+      timer = setInterval(() => {
+        timeLeft--;
+        timerEl.innerText = `Time Left: ${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          disableAnswers();
+          nextBtn.style.display = "block";
+        }
+      }, 1000);
+    }
+
+    function showQuestion() {
+      clearInterval(timer);
+      nextBtn.style.display = "none";
+
+      const q = questions[currentIndex];
+      questionEl.innerText = q.question;
+      answersEl.innerHTML = "";
+
+      q.options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.innerText = option;
+        btn.addEventListener("click", () => checkAnswer(option));
+        answersEl.appendChild(btn);
+      });
+
+      startTimer();
+
+      // Make sure question container and timer visible in case restarting
+      questionContainer.style.display = "block";
+      timerEl.style.display = "block";
+    }
+
+    function checkAnswer(selected) {
+      clearInterval(timer);
+      disableAnswers();
+      const correct = questions[currentIndex].answer;
+
+      if (selected === correct) {
+        score++;
+      }
+
+      nextBtn.style.display = "block";
+    }
+
+    function disableAnswers() {
+      const buttons = answersEl.querySelectorAll('button');
+      buttons.forEach(btn => btn.disabled = true);
+    }
+
+    nextBtn.addEventListener("click", () => {
+      currentIndex++;
+      if (currentIndex < questions.length) {
+        showQuestion();
+      } else {
+        showResult();
+      }
+    });
+
+    function showResult() {
+      clearInterval(timer);
+
+      // Hide question section and next button and timer
+      questionContainer.style.display = "none";
+      nextBtn.style.display = "none";
+      timerEl.style.display = "none";
+
+      // Show result container with score and restart
+      resultContainer.style.display = "block";
+      resultMessage.textContent = `Congratulations! You scored ${score} out of ${questions.length}`;
+    }
+
+    restartBtn.addEventListener('click', () => {
+      startQuiz();
+    });
+
+    // Initialize app on page load
+    window.onload = fetchQuestions;
+  </script>
+</body>
+</html>
